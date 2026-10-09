@@ -1,0 +1,15 @@
+{
+  "name": "notification-dispatcher",
+  "version": "1.0.0",
+  "description": "SafeRide AI Notification Dispatcher Agent",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "firebase-admin": "^12.0.0",
+    "dotenv": "^16.4.1"
+  }
+}

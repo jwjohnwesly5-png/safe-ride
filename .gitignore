@@ -2,6 +2,8 @@ node_modules/
 dist/
 .env
 .env.local
+.tools/
+flutter_sdk_git/
 *.log
 .DS_Store
 
