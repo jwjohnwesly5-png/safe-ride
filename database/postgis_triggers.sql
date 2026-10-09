@@ -1,55 +1,71 @@
--- PostGIS Spherical Distance & Geofence Triggers
+-- ====================================================================
+-- SafeRide AI: PostGIS Geofence Spatial Functions & Triggers
+-- Repository: jwjohnwesly5-png/safe-ride
+-- ====================================================================
 
--- Function to check if Bus GPS is within stop radius (<= 50 meters)
-CREATE OR REPLACE FUNCTION check_stop_geofence(
-    bus_lat FLOAT,
-    bus_lng FLOAT,
-    target_stop_id UUID
-) RETURNS TABLE (
-    is_within_geofence BOOLEAN,
-    distance_meters FLOAT
-) AS $$
+-- 1. FUNCTION: Calculate distance in meters between bus and stop using PostGIS spherical geometry
+CREATE OR REPLACE FUNCTION check_bus_geofence(
+    p_bus_lat FLOAT,
+    p_bus_lng FLOAT,
+    p_stop_lat FLOAT,
+    p_stop_lng FLOAT
+) RETURNS FLOAT AS $$
 DECLARE
-    stop_geom GEOMETRY;
-    bus_geom GEOMETRY;
-    dist FLOAT;
-    radius FLOAT;
+    v_bus_geom GEOMETRY;
+    v_stop_geom GEOMETRY;
+    v_distance_meters FLOAT;
 BEGIN
-    -- Construct Geometry Points (SRID 4326)
-    bus_geom := ST_SetSRID(ST_MakePoint(bus_lng, bus_lat), 4326);
+    v_bus_geom := ST_SetSRID(ST_MakePoint(p_bus_lng, p_bus_lat), 4326);
+    v_stop_geom := ST_SetSRID(ST_MakePoint(p_stop_lng, p_stop_lat), 4326);
     
-    SELECT stop_location, geofence_radius_meters 
-    INTO stop_geom, radius
-    FROM route_stops 
-    WHERE id = target_stop_id;
-    
-    -- Calculate spherical distance in meters
-    dist := ST_DistanceSphere(bus_geom, stop_geom);
-    
-    IF dist <= radius THEN
-        RETURN QUERY SELECT TRUE, dist;
-    ELSE
-        RETURN QUERY SELECT FALSE, dist;
-    END IF;
+    -- ST_DistanceSphere returns distance in meters
+    v_distance_meters := ST_DistanceSphere(v_bus_geom, v_stop_geom);
+    RETURN v_distance_meters;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger Function to emit transit event on geofence entry
-CREATE OR REPLACE FUNCTION trigger_geofence_arrival()
+-- 2. TRIGGER FUNCTION: Evaluate Geofence Arrival on Bus Location Update
+CREATE OR REPLACE FUNCTION trigger_geofence_arrival_check() 
 RETURNS TRIGGER AS $$
 DECLARE
-    rec RECORD;
+    r_stop RECORD;
+    v_dist FLOAT;
 BEGIN
-    FOR rec IN 
-        SELECT id, stop_name, geofence_radius_meters,
-               ST_DistanceSphere(NEW.current_location, stop_location) as dist
-        FROM route_stops
+    -- Check against active route stops
+    FOR r_stop IN 
+        SELECT id, stop_name, latitude, longitude, geofence_radius_meters 
+        FROM route_stops 
     LOOP
-        IF rec.dist <= rec.geofence_radius_meters THEN
-            INSERT INTO transit_events (bus_id, driver_id, stop_id, event_type, gps_coordinates)
-            VALUES (NEW.id, NEW.driver_id, rec.id, 'GEOFENCE_ARRIVAL', NEW.current_location);
+        v_dist := ST_DistanceSphere(
+            ST_SetSRID(ST_MakePoint(NEW.current_longitude, NEW.current_latitude), 4326),
+            ST_SetSRID(ST_MakePoint(r_stop.longitude, r_stop.latitude), 4326)
+        );
+
+        IF v_dist <= r_stop.geofence_radius_meters THEN
+            -- Insert GEOFENCE_ARRIVAL event for students assigned to this stop
+            INSERT INTO transit_events (student_id, bus_id, driver_id, stop_id, event_type, latitude, longitude)
+            SELECT s.id, NEW.id, NEW.driver_id, r_stop.id, 'GEOFENCE_ARRIVAL', NEW.current_latitude, NEW.current_longitude
+            FROM students s
+            WHERE s.assigned_bus_id = NEW.id 
+              AND s.assigned_stop_id = r_stop.id 
+              AND s.current_status = 'PENDING';
+
+            -- Update Student Status to GEOFENCE_NOTIFIED
+            UPDATE students
+            SET current_status = 'GEOFENCE_NOTIFIED'
+            WHERE assigned_bus_id = NEW.id 
+              AND assigned_stop_id = r_stop.id 
+              AND current_status = 'PENDING';
         END IF;
     END LOOP;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- 3. CREATE TRIGGER ON BUSES TABLE FOR GPS POSITION UPDATES
+DROP TRIGGER IF EXISTS trg_bus_gps_geofence ON buses;
+CREATE TRIGGER trg_bus_gps_geofence
+    AFTER UPDATE OF current_latitude, current_longitude ON buses
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_geofence_arrival_check();
