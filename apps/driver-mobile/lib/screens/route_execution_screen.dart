@@ -60,10 +60,10 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: _isRouteActive ? Colors.emerald.withOpacity(0.2) : Colors.amber.withOpacity(0.2),
+              color: _isRouteActive ? Colors.green.withOpacity(0.2) : Colors.amber.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _isRouteActive ? Colors.emerald : Colors.amber,
+                color: _isRouteActive ? Colors.green : Colors.amber,
               ),
             ),
             child: Text(
@@ -71,7 +71,7 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: _isRouteActive ? Colors.emeraldAccent : Colors.amberAccent,
+                color: _isRouteActive ? Colors.greenAccent : Colors.amberAccent,
               ),
             ),
           )
@@ -88,7 +88,7 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
               icon: Icon(_isRouteActive ? Icons.pause_circle : Icons.play_circle),
               label: Text(_isRouteActive ? 'PAUSE ROUTE STREAMING' : 'START BUS 05 ROUTE'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isRouteActive ? Colors.rose : const Color(0xFF6366F1),
+                backgroundColor: _isRouteActive ? Colors.redAccent : const Color(0xFF6366F1),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -108,7 +108,7 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
                     const SizedBox(height: 8),
                     Text('Latitude: ${_latestCoord?.latitude.toStringAsFixed(5) ?? '12.97000'}', style: const TextStyle(fontSize: 14, fontFamily: 'monospace')),
                     Text('Longitude: ${_latestCoord?.longitude.toStringAsFixed(5) ?? '77.59200'}', style: const TextStyle(fontSize: 14, fontFamily: 'monospace')),
-                    Text('Speed: ${((_latestCoord?.speedMps ?? 0) * 3.6).toStringAsFixed(1)} km/h', style: const TextStyle(fontSize: 14, color: Colors.emeraldAccent)),
+                    Text('Speed: ${((_latestCoord?.speedMps ?? 0) * 3.6).toStringAsFixed(1)} km/h', style: const TextStyle(fontSize: 14, color: Colors.greenAccent)),
                   ],
                 ),
               ),
@@ -151,19 +151,19 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: (_latestGeofence?.isWithin50m ?? false) ? Colors.emeraldAccent : Colors.white,
+                        color: (_latestGeofence?.isWithin50m ?? false) ? Colors.greenAccent : Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
                     if (_latestGeofence?.isWithin50m ?? false)
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.emerald.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
                         child: const Row(
                           children: [
-                            Icon(Icons.notifications_active, color: Colors.emeraldAccent, size: 16),
+                            Icon(Icons.notifications_active, color: Colors.greenAccent, size: 16),
                             SizedBox(width: 8),
-                            Text('PARENT ALERT #1 DISPATCHED (Geofence Arrival)', style: TextStyle(color: Colors.emeraldAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('PARENT ALERT #1 DISPATCHED (Geofence Arrival)', style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       )
