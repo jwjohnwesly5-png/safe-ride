@@ -1,0 +1,9 @@
+{
+  "appId": "ai.saferide.parent",
+  "appName": "SafeRide Parent",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
