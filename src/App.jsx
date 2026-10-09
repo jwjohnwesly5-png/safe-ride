@@ -14,7 +14,7 @@ import {
   INITIAL_TRANSIT_EVENTS 
 } from './mockData';
 
-export default function App() {
+export function App() {
   const [activeTab, setActiveTab] = useState('judging'); // Default to Judging Demo Mode for instant wow factor!
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [buses, setBuses] = useState(INITIAL_BUSES);
@@ -282,3 +282,5 @@ export default function App() {
     </div>
   );
 }
+
+export default App;

@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS buses (
     capacity INT NOT NULL DEFAULT 40,
     driver_id UUID REFERENCES users(id) ON DELETE SET NULL,
     is_active BOOLEAN DEFAULT TRUE,
+    current_location GEOMETRY(Point, 4326),
     current_latitude FLOAT,
     current_longitude FLOAT,
     last_gps_update TIMESTAMP WITH TIME ZONE
@@ -52,6 +53,7 @@ CREATE TABLE IF NOT EXISTS route_stops (
     longitude FLOAT NOT NULL,
     geofence_radius_meters FLOAT DEFAULT 50.0,
     stop_sequence INT NOT NULL,
+    estimated_arrival_time TIME,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -89,6 +91,7 @@ CREATE TABLE IF NOT EXISTS transit_events (
 
 -- 8. INDEXES FOR HIGH-PERFORMANCE QUERIES
 CREATE INDEX IF NOT EXISTS idx_route_stops_location ON route_stops USING GIST(stop_location);
+CREATE INDEX IF NOT EXISTS idx_buses_current_location ON buses USING GIST(current_location);
 CREATE INDEX IF NOT EXISTS idx_transit_events_student ON transit_events(student_id);
 CREATE INDEX IF NOT EXISTS idx_transit_events_bus ON transit_events(bus_id);
 CREATE INDEX IF NOT EXISTS idx_students_parent ON students(parent_id);

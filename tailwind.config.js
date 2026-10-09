@@ -6,6 +6,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'Outfit', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
       colors: {
         brand: {
           50: '#eef2ff',
@@ -21,9 +25,6 @@ export default {
           amber: '#f59e0b',
           cyan: '#06b6d4'
         }
-      },
-      fontFamily: {
-        sans: ['Inter', 'Outfit', 'sans-serif'],
       },
       animation: {
         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',

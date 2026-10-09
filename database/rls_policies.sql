@@ -19,7 +19,18 @@ CREATE POLICY admin_users_all ON users
 CREATE POLICY user_self_view ON users 
     FOR SELECT USING (auth.uid() = id);
 
--- 3. STUDENTS POLICIES
+-- 3. BUSES POLICIES
+CREATE POLICY admin_buses_all ON buses 
+    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN');
+
+CREATE POLICY driver_read_assigned_bus ON buses 
+    FOR SELECT USING (driver_id = auth.uid());
+
+-- 4. ROUTE STOPS POLICIES
+CREATE POLICY route_stops_public_read ON route_stops 
+    FOR SELECT USING (true);
+
+-- 5. STUDENTS POLICIES
 -- Admin full access to students
 CREATE POLICY admin_students_all ON students 
     FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN');
@@ -38,7 +49,7 @@ CREATE POLICY driver_students_select ON students
         )
     );
 
--- 4. TRANSIT EVENTS POLICIES
+-- 6. TRANSIT EVENTS POLICIES
 -- Admin full access
 CREATE POLICY admin_transit_events_all ON transit_events 
     FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN');
