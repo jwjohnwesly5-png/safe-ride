@@ -1,0 +1,5 @@
+node_modules/
+.env
+.tools/
+flutter_sdk_git/
+.DS_Store

@@ -1,0 +1,26 @@
+name: driver_mobile
+description: Driver Telematics & Vision Agent for SafeRide AI
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: ^0.10.5+7
+  tflite_flutter: ^0.10.4
+  geolocator: ^10.1.0
+  supabase_flutter: ^2.3.1
+  path_provider: ^2.1.2
+  sqflite: ^2.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
