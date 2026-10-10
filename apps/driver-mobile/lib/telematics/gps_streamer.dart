@@ -138,7 +138,7 @@ class GPSStreamer {
       if (!isTracking) return;
 
       currentLat += 0.0004;
-      currentLng += 0.0004;
+      currentLng += 0.0006;
 
       final coord = GPSCoordinate(
         latitude: currentLat,
@@ -164,26 +164,36 @@ class GPSStreamer {
   }
 
   Future<void> _sendTelemetry(GPSCoordinate coord) async {
-    try {
-      _offlineQueue.add(coord);
+    _offlineQueue.add(coord);
 
-      final payload = {
-        'busId': busId,
-        'driverId': driverId,
-        'coordinates': _offlineQueue.map((c) => c.toJson()).toList(),
-      };
+    final payload = {
+      'busId': busId,
+      'driverId': driverId,
+      'coordinates': _offlineQueue.map((c) => c.toJson()).toList(),
+    };
 
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:3003/api/telemetry'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
+    // Try primary Android emulator host (10.0.2.2) and fallback to localhost/127.0.0.1 for Web/Desktop
+    final hosts = [
+      'http://10.0.2.2:3003/api/telemetry',
+      'http://127.0.0.1:3003/api/telemetry',
+      'http://localhost:3003/api/telemetry',
+    ];
 
-      if (response.statusCode == 200) {
-        _offlineQueue.clear();
+    for (final endpoint in hosts) {
+      try {
+        final response = await http.post(
+          Uri.parse(endpoint),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        ).timeout(const Duration(seconds: 2));
+
+        if (response.statusCode == 200) {
+          _offlineQueue.clear();
+          break;
+        }
+      } catch (_) {
+        // Try next endpoint
       }
-    } catch (e) {
-      // Offline mode caching
     }
   }
 

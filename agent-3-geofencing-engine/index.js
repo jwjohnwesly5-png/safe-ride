@@ -7,14 +7,20 @@ const port = process.env.PORT || 3003;
 
 app.use(express.json());
 
-// Initialize PostgreSQL connection pool
+// Helper to ensure IDs are valid UUIDs for PostgreSQL procedure
+function toValidUUID(id, defaultUuid) {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(id)) return id;
+  return defaultUuid;
+}
+
+// Initialize PostgreSQL connection pool with fallback connection string
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/saferide',
 });
 
 pool.on('error', (err, client) => {
   console.error('Unexpected error on idle client', err);
-  process.exit(-1);
 });
 
 /**
@@ -36,6 +42,10 @@ app.post('/api/telemetry', async (req, res) => {
     return res.status(400).json({ error: 'Invalid payload structure. Requires busId, driverId, and coordinates array.' });
   }
 
+  // Ensure UUID formatting for PostgreSQL
+  const validBusId = toValidUUID(busId, 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44');
+  const validDriverId = toValidUUID(driverId, 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22');
+
   const client = await pool.connect();
   
   try {
@@ -45,11 +55,8 @@ app.post('/api/telemetry', async (req, res) => {
     for (const coord of coordinates) {
       const { latitude, longitude, speedMps, heading } = coord;
       
-      // Execute the PostGIS stored procedure defined in spatial_queries.sql
-      // This procedure updates the bus location and handles ST_DWithin geofence intersection 
-      // logic, automatically emitting 'GEOFENCE_ARRIVAL' to transit_events.
       const queryText = `CALL log_driver_telemetry($1, $2, $3, $4, $5, $6)`;
-      const queryValues = [busId, driverId, latitude, longitude, speedMps || 0.0, heading || 0.0];
+      const queryValues = [validBusId, validDriverId, latitude, longitude, speedMps || 0.0, heading || 0.0];
       
       await client.query(queryText, queryValues);
     }

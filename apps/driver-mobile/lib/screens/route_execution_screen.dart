@@ -22,7 +22,10 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
   @override
   void initState() {
     super.initState();
-    _telematicsService = GPSStreamer(busId: 'bus-05', driverId: 'usr-driver-1');
+    _telematicsService = GPSStreamer(
+      busId: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44',
+      driverId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
+    );
 
     _telematicsService.locationStream.listen((coord) {
       setState(() {

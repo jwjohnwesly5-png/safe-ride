@@ -20,8 +20,11 @@ import {
   ExternalLink 
 } from 'lucide-react';
 
+import { SystemArchitectureModal } from './components/SystemArchitectureModal';
+
 export const App: React.FC = () => {
   const [activePortal, setActivePortal] = useState<'admin' | 'parent' | 'driver'>('admin');
+  const [showArchModal, setShowArchModal] = useState(false);
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
   const [buses, setBuses] = useState<Bus[]>(INITIAL_BUSES);
   const [stops, setStops] = useState<RouteStop[]>(INITIAL_STOPS);
@@ -196,42 +199,52 @@ export const App: React.FC = () => {
           </div>
 
           {/* Portal Switcher Nav Tabs */}
-          <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setActivePortal('admin')}
-              className={`px-3.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition ${
-                activePortal === 'admin'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
+              onClick={() => setShowArchModal(true)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/20 transition flex items-center gap-1"
             >
-              <Activity className="w-3.5 h-3.5" />
-              1. School Admin
+              <ExternalLink className="w-3.5 h-3.5" />
+              Architecture Spec
             </button>
 
-            <button
-              onClick={() => setActivePortal('parent')}
-              className={`px-3.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition ${
-                activePortal === 'parent'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              2. Parent App
-            </button>
+            <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+              <button
+                onClick={() => setActivePortal('admin')}
+                className={`px-3.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition ${
+                  activePortal === 'admin'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5" />
+                1. School Admin
+              </button>
 
-            <button
-              onClick={() => setActivePortal('driver')}
-              className={`px-3.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition ${
-                activePortal === 'driver'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <BusIcon className="w-3.5 h-3.5" />
-              3. Driver Vision App
-            </button>
+              <button
+                onClick={() => setActivePortal('parent')}
+                className={`px-3.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition ${
+                  activePortal === 'parent'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                2. Parent App
+              </button>
+
+              <button
+                onClick={() => setActivePortal('driver')}
+                className={`px-3.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition ${
+                  activePortal === 'driver'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <BusIcon className="w-3.5 h-3.5" />
+                3. Driver Vision App
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -267,6 +280,9 @@ export const App: React.FC = () => {
           />
         )}
       </main>
+
+      {/* Architecture Spec Viewer Modal */}
+      <SystemArchitectureModal isOpen={showArchModal} onClose={() => setShowArchModal(false)} />
 
       {/* Hackathon Interactive Floating Simulator Bar */}
       <GeofenceSimulator

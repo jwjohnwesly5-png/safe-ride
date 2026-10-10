@@ -13,7 +13,7 @@ ALTER TABLE transit_events ENABLE ROW LEVEL SECURITY;
 -- 2. USERS POLICIES
 -- Admin can view/edit all users
 CREATE POLICY admin_users_all ON users 
-    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN');
+    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN' OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN' OR auth.role() = 'service_role');
 
 -- Users can view their own profile
 CREATE POLICY user_self_view ON users 
@@ -21,7 +21,7 @@ CREATE POLICY user_self_view ON users
 
 -- 3. BUSES POLICIES
 CREATE POLICY admin_buses_all ON buses 
-    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN');
+    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN' OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN' OR auth.role() = 'service_role');
 
 CREATE POLICY driver_read_assigned_bus ON buses 
     FOR SELECT USING (driver_id = auth.uid());
@@ -33,7 +33,7 @@ CREATE POLICY route_stops_public_read ON route_stops
 -- 5. STUDENTS POLICIES
 -- Admin full access to students
 CREATE POLICY admin_students_all ON students 
-    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN');
+    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN' OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN' OR auth.role() = 'service_role');
 
 -- Parent can ONLY view students linked to their parent_id
 CREATE POLICY parent_students_select ON students 
@@ -52,7 +52,7 @@ CREATE POLICY driver_students_select ON students
 -- 6. TRANSIT EVENTS POLICIES
 -- Admin full access
 CREATE POLICY admin_transit_events_all ON transit_events 
-    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN');
+    FOR ALL USING (auth.jwt() ->> 'role' = 'ADMIN' OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN' OR auth.role() = 'service_role');
 
 -- Parent can ONLY view events for their child
 CREATE POLICY parent_transit_events_select ON transit_events 
