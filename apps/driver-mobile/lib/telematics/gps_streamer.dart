@@ -1,20 +1,25 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:geolocator/geolocator.dart';
 
-/// GPS Coordinate model for Agent 3 Driver App
+/// GPS Coordinate model for Agent 4 Driver App & Telematics Engine
 class GPSCoordinate {
   final double latitude;
   final double longitude;
   final double speedMps;
   final double heading;
+  final double accuracyMeters;
   final String timestamp;
+  final bool isMock;
 
   GPSCoordinate({
     required this.latitude,
     required this.longitude,
     required this.speedMps,
     required this.heading,
+    this.accuracyMeters = 3.5,
     required this.timestamp,
+    this.isMock = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -22,11 +27,13 @@ class GPSCoordinate {
         'longitude': longitude,
         'speedMps': speedMps,
         'heading': heading,
+        'accuracyMeters': accuracyMeters,
         'timestamp': timestamp,
+        'isMock': isMock,
       };
 }
 
-/// Geofence Result model
+/// Geofence Result model for 50m PostGIS Geofence Evaluation
 class GeofenceResult {
   final String stopId;
   final String stopName;
@@ -41,14 +48,24 @@ class GeofenceResult {
     required this.isWithin50m,
     required this.triggeredArrival,
   });
+
+  Map<String, dynamic> toJson() => {
+        'stopId': stopId,
+        'stopName': stopName,
+        'distanceMeters': distanceMeters,
+        'isWithin50m': isWithin50m,
+        'triggeredArrival': triggeredArrival,
+      };
 }
 
-/// Agent 3: Flutter Background GPS Streamer & Telematics Service
+/// Agent 4: Flutter Background GPS Streamer & Telematics Engine
 class GPSStreamer {
   final String busId;
   final String driverId;
   bool isTracking = false;
+  bool useRealHardwareGps = false;
   Timer? _timer;
+  StreamSubscription<Position>? _positionSubscription;
   final List<GPSCoordinate> _offlineQueue = [];
   
   final StreamController<GPSCoordinate> _locationController = StreamController.broadcast();
@@ -59,10 +76,57 @@ class GPSStreamer {
 
   GPSStreamer({required this.busId, required this.driverId});
 
-  void startTracking() {
+  /// Request hardware GPS permissions and start 5s location streaming
+  Future<void> startTracking({bool preferHardwareGps = true}) async {
     if (isTracking) return;
     isTracking = true;
-    print('[Agent 3 GPSStreamer] Background GPS tracking started for Bus $busId.');
+
+    if (preferHardwareGps) {
+      try {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (serviceEnabled) {
+          LocationPermission permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+
+          if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
+            useRealHardwareGps = true;
+            print('[Agent 4 GPSStreamer] Hardware GPS Sensor active for Bus $busId.');
+
+            const locationSettings = LocationSettings(
+              accuracy: LocationAccuracy.high,
+              distanceFilter: 5,
+            );
+
+            _positionSubscription = Geolocator.getPositionStream(locationSettings: locationSettings).listen((position) {
+              if (!isTracking) return;
+
+              final coord = GPSCoordinate(
+                latitude: position.latitude,
+                longitude: position.longitude,
+                speedMps: position.speed,
+                heading: position.heading,
+                accuracyMeters: position.accuracy,
+                timestamp: DateTime.now().toIso8601String(),
+                isMock: false,
+              );
+
+              _locationController.add(coord);
+              _evaluateGeofence(coord);
+            });
+
+            return;
+          }
+        }
+      } catch (e) {
+        print('[Agent 4 GPSStreamer] Hardware GPS unavailable. Falling back to high-precision telematics simulator: $e');
+      }
+    }
+
+    // Fallback: Telematics Path Simulator (5s interval)
+    useRealHardwareGps = false;
+    print('[Agent 4 GPSStreamer] Simulated 5s Telematics Stream started for Bus $busId.');
 
     double currentLat = 12.9700;
     double currentLng = 77.5920;
@@ -70,7 +134,7 @@ class GPSStreamer {
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (!isTracking) return;
 
-      // Simulate bus movement towards stop
+      // Simulate movement along morning transit route toward Oakridge Residence
       currentLat += 0.0004;
       currentLng += 0.0004;
 
@@ -79,7 +143,9 @@ class GPSStreamer {
         longitude: currentLng,
         speedMps: 8.3, // ~30 km/h
         heading: 45.0,
+        accuracyMeters: 2.5,
         timestamp: DateTime.now().toIso8601String(),
+        isMock: true,
       );
 
       _locationController.add(coord);
@@ -90,12 +156,13 @@ class GPSStreamer {
   void stopTracking() {
     isTracking = false;
     _timer?.cancel();
-    print('[Agent 3 GPSStreamer] Background GPS tracking stopped.');
+    _positionSubscription?.cancel();
+    print('[Agent 4 GPSStreamer] Background GPS tracking stopped.');
   }
 
-  /// PostGIS Haversine Distance Calculation (Meter precision)
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371000.0;
+  /// PostGIS Spherical Distance Calculation (Meter precision)
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const r = 6371000.0; // Earth radius in meters
     final dLat = (lat2 - lat1) * (pi / 180.0);
     final dLon = (lon2 - lon1) * (pi / 180.0);
 
@@ -107,11 +174,11 @@ class GPSStreamer {
   }
 
   void _evaluateGeofence(GPSCoordinate coord) {
-    // Registered Stop 1: Oakridge Residence (12.9720, 77.5950)
+    // Stop #1: Oakridge Residence (12.9720, 77.5950)
     const stopLat = 12.9720;
     const stopLng = 77.5950;
 
-    final dist = _calculateDistance(coord.latitude, coord.longitude, stopLat, stopLng);
+    final dist = calculateDistance(coord.latitude, coord.longitude, stopLat, stopLng);
     final isWithin = dist <= 50.0;
 
     final result = GeofenceResult(
@@ -125,9 +192,12 @@ class GPSStreamer {
     _geofenceController.add(result);
   }
 
+  int getOfflineQueueLength() => _offlineQueue.length;
+
   void dispose() {
-    _timer?.cancel();
+    stopTracking();
     _locationController.close();
     _geofenceController.close();
   }
 }
+
