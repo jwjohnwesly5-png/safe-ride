@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 
 /// GPS Coordinate model for Agent 3 Driver App
 class GPSCoordinate {
@@ -54,43 +57,84 @@ class GPSStreamer {
   final StreamController<GPSCoordinate> _locationController = StreamController.broadcast();
   final StreamController<GeofenceResult> _geofenceController = StreamController.broadcast();
 
+  StreamSubscription<Position>? _positionStream;
+
   Stream<GPSCoordinate> get locationStream => _locationController.stream;
   Stream<GeofenceResult> get geofenceStream => _geofenceController.stream;
 
   GPSStreamer({required this.busId, required this.driverId});
 
-  void startTracking() {
+  Future<void> startTracking() async {
     if (isTracking) return;
+    
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        print('[Agent 3 GPSStreamer] Location permissions denied.');
+        return;
+      }
+    }
+
     isTracking = true;
     print('[Agent 3 GPSStreamer] Background GPS tracking started for Bus $busId.');
 
-    double currentLat = 12.9700;
-    double currentLng = 77.5920;
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 5, // minimum change of 5 meters
+    );
 
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (!isTracking) return;
+    _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (Position? position) {
+        if (position != null && isTracking) {
+          final coord = GPSCoordinate(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            speedMps: position.speed,
+            heading: position.heading,
+            timestamp: DateTime.now().toIso8601String(),
+          );
 
-      // Simulate bus movement towards stop
-      currentLat += 0.0004;
-      currentLng += 0.0004;
-
-      final coord = GPSCoordinate(
-        latitude: currentLat,
-        longitude: currentLng,
-        speedMps: 8.3, // ~30 km/h
-        heading: 45.0,
-        timestamp: DateTime.now().toIso8601String(),
-      );
-
-      _locationController.add(coord);
-      _evaluateGeofence(coord);
-    });
+          _locationController.add(coord);
+          _evaluateGeofence(coord);
+          _sendTelemetry(coord);
+        }
+      }
+    );
   }
 
   void stopTracking() {
     isTracking = false;
-    _timer?.cancel();
+    _positionStream?.cancel();
+    _positionStream = null;
     print('[Agent 3 GPSStreamer] Background GPS tracking stopped.');
+  }
+
+  Future<void> _sendTelemetry(GPSCoordinate coord) async {
+    try {
+      // Offline queue logic
+      _offlineQueue.add(coord);
+
+      // We'll post the whole queue so we sync properly
+      final payload = {
+        'busId': busId,
+        'driverId': driverId,
+        'coordinates': _offlineQueue.map((c) => c.toJson()).toList(),
+      };
+
+      // Assuming localhost works for the emulator/device, adjust if running on Android Emulator (10.0.2.2)
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:3003/api/telemetry'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        _offlineQueue.clear();
+      }
+    } catch (e) {
+      print('[Agent 3 Telematics] Sync failed, keeping ${coord.timestamp} in offline queue. Error: $e');
+    }
   }
 
   /// PostGIS Haversine Distance Calculation (Meter precision)
@@ -126,7 +170,7 @@ class GPSStreamer {
   }
 
   void dispose() {
-    _timer?.cancel();
+    _positionStream?.cancel();
     _locationController.close();
     _geofenceController.close();
   }
