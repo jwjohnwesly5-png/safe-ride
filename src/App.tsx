@@ -277,6 +277,7 @@ export const App: React.FC = () => {
             stops={stops}
             onVerifyBoarding={(id, mfv) => handleSimulateBoardingScan(id)}
             onManualOverride={handleManualOverride}
+            onWrongBusMismatch={() => handleSimulateWrongBusMismatch()}
           />
         )}
       </main>

@@ -197,44 +197,65 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
             const SizedBox(height: 16),
 
             // Geofence Distance Card
-            Card(
-              color: (_latestGeofence?.isWithin50m ?? false) ? Colors.indigo.withOpacity(0.3) : const Color(0xFF1E293B),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: (_latestGeofence?.isWithin50m ?? false) ? Colors.indigo : Colors.transparent,
+            Builder(builder: (context) {
+              final bool isWithinGeofence = _latestGeofence?.isWithin50m ?? true;
+              return Card(
+                color: isWithinGeofence ? Colors.emerald.withOpacity(0.15) : const Color(0xFF1E293B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isWithinGeofence ? Colors.emerald : Colors.transparent,
+                    width: isWithinGeofence ? 1.5 : 1.0,
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('50m STOP GEOFENCE EVALUATION', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: const Text('Radius: 50m', style: TextStyle(color: Colors.indigoAccent, fontSize: 10)),
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text('Target Stop: ${_latestGeofence?.stopName ?? 'Oakridge Residence'}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    Text(
-                      'Distance to Stop: ${_latestGeofence?.distanceMeters.toStringAsFixed(1) ?? '18.4'} meters',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: (_latestGeofence?.isWithin50m ?? false) ? Colors.greenAccent : Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            isWithinGeofence ? '✓ INSIDE 50m STOP GEOFENCE' : '50m STOP GEOFENCE EVALUATION',
+                            style: TextStyle(
+                              color: isWithinGeofence ? Colors.emeraldAccent : Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isWithinGeofence ? Colors.emerald.withOpacity(0.2) : Colors.indigo.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Radius: 50m',
+                              style: TextStyle(
+                                color: isWithinGeofence ? Colors.emeraldAccent : Colors.indigoAccent,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      Text('Target Stop: ${_latestGeofence?.stopName ?? 'Oakridge Residence'}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                      Text(
+                        'Distance to Stop: ${_latestGeofence?.distanceMeters.toStringAsFixed(1) ?? '18.4'} meters',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isWithinGeofence ? Colors.greenAccent : Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            }),
             const SizedBox(height: 16),
 
             // Biometric Camera Scanner HUD Card

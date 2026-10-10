@@ -12,6 +12,9 @@ import {
   Info 
 } from 'lucide-react';
 
+// @ts-ignore
+import InteractiveMap from './InteractiveMap';
+
 interface ParentPortalProps {
   student: Student;
   stop: RouteStop;
@@ -37,6 +40,33 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
     setIsEditingPin(false);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
+  const mapStops = [
+    {
+      id: stop.id,
+      latitude: pinLat,
+      longitude: pinLng,
+      stop_name: stop.stopName,
+      geofence_radius_meters: 50,
+    }
+  ];
+
+  const mapStudents = [
+    {
+      id: student.id,
+      first_name: student.firstName,
+      last_name: student.lastName,
+      parent_name: 'Parent User',
+      pickup_latitude: pinLat,
+      pickup_longitude: pinLng,
+      current_status: student.currentStatus,
+    }
+  ];
+
+  const currentBusLocation = {
+    lat: student.currentStatus === 'BOARDED' ? pinLat + 0.003 : 12.9716,
+    lng: student.currentStatus === 'BOARDED' ? pinLng + 0.003 : 77.5946,
   };
 
   return (
@@ -138,17 +168,32 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
             </div>
           )}
 
+          {/* Graphical Leaflet Interactive Map View */}
+          <div className="rounded-2xl overflow-hidden border border-slate-800 my-2">
+            <InteractiveMap
+              busLocation={currentBusLocation}
+              stops={mapStops}
+              students={mapStudents}
+              interactivePinMode={isEditingPin}
+              onPickupSelect={(lat: number, lng: number) => {
+                setPinLat(lat);
+                setPinLng(lng);
+              }}
+              height="200px"
+            />
+          </div>
+
           {!isEditingPin ? (
             <div className="text-xs text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 space-y-1">
               <p className="font-semibold text-slate-200">{stop.stopName}</p>
               <p className="font-mono text-[11px] text-indigo-400">
-                Coordinates: {stop.lat.toFixed(4)}, {stop.lng.toFixed(4)}
+                Coordinates: {pinLat.toFixed(4)}, {pinLng.toFixed(4)}
               </p>
               <p className="text-[10px] text-slate-500">Auto-Geofence Radius: 50 Meters</p>
             </div>
           ) : (
             <div className="space-y-2 text-xs bg-slate-950 p-3 rounded-xl border border-indigo-500/30">
-              <p className="text-slate-400 text-[11px]">Pinpoint exact home pickup coordinates:</p>
+              <p className="text-slate-400 text-[11px]">Click anywhere on map above or enter coordinates below:</p>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[10px] text-slate-400">Latitude</label>

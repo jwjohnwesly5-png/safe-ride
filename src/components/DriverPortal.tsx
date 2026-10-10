@@ -18,6 +18,7 @@ interface DriverPortalProps {
   stops: RouteStop[];
   onVerifyBoarding: (studentId: string, mfvResult: MFVFactorCheck) => void;
   onManualOverride: (studentId: string, reason: string) => void;
+  onWrongBusMismatch?: (student: Student) => void;
 }
 
 export const DriverPortal: React.FC<DriverPortalProps> = ({
@@ -26,6 +27,7 @@ export const DriverPortal: React.FC<DriverPortalProps> = ({
   stops,
   onVerifyBoarding,
   onManualOverride,
+  onWrongBusMismatch,
 }) => {
   const [scanning, setScanning] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<{ student: Student; mfv: MFVFactorCheck } | null>(null);
@@ -63,6 +65,8 @@ export const DriverPortal: React.FC<DriverPortalProps> = ({
 
       if (mfvCheck.overallPassed) {
         onVerifyBoarding(targetStudent.id, mfvCheck);
+      } else if (forceWrongBus && onWrongBusMismatch) {
+        onWrongBusMismatch(targetStudent);
       }
     }, 600);
   };
