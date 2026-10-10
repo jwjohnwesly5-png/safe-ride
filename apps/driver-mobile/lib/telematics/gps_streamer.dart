@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 
 /// GPS Coordinate model for Agent 4 Driver App & Telematics Engine
@@ -114,6 +116,7 @@ class GPSStreamer {
 
               _locationController.add(coord);
               _evaluateGeofence(coord);
+              _sendTelemetry(coord);
             });
 
             return;
@@ -134,14 +137,13 @@ class GPSStreamer {
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (!isTracking) return;
 
-      // Simulate movement along morning transit route toward Oakridge Residence
       currentLat += 0.0004;
       currentLng += 0.0004;
 
       final coord = GPSCoordinate(
         latitude: currentLat,
         longitude: currentLng,
-        speedMps: 8.3, // ~30 km/h
+        speedMps: 8.3,
         heading: 45.0,
         accuracyMeters: 2.5,
         timestamp: DateTime.now().toIso8601String(),
@@ -150,6 +152,7 @@ class GPSStreamer {
 
       _locationController.add(coord);
       _evaluateGeofence(coord);
+      _sendTelemetry(coord);
     });
   }
 
@@ -160,9 +163,33 @@ class GPSStreamer {
     print('[Agent 4 GPSStreamer] Background GPS tracking stopped.');
   }
 
+  Future<void> _sendTelemetry(GPSCoordinate coord) async {
+    try {
+      _offlineQueue.add(coord);
+
+      final payload = {
+        'busId': busId,
+        'driverId': driverId,
+        'coordinates': _offlineQueue.map((c) => c.toJson()).toList(),
+      };
+
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:3003/api/telemetry'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        _offlineQueue.clear();
+      }
+    } catch (e) {
+      // Offline mode caching
+    }
+  }
+
   /// PostGIS Spherical Distance Calculation (Meter precision)
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371000.0; // Earth radius in meters
+    const r = 6371000.0;
     final dLat = (lat2 - lat1) * (pi / 180.0);
     final dLon = (lon2 - lon1) * (pi / 180.0);
 
@@ -174,7 +201,6 @@ class GPSStreamer {
   }
 
   void _evaluateGeofence(GPSCoordinate coord) {
-    // Stop #1: Oakridge Residence (12.9720, 77.5950)
     const stopLat = 12.9720;
     const stopLng = 77.5950;
 
@@ -200,4 +226,3 @@ class GPSStreamer {
     _geofenceController.close();
   }
 }
-

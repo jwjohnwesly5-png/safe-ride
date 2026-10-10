@@ -6,4 +6,5 @@ dist/
 flutter_sdk_git/
 *.log
 .DS_Store
+serviceAccountKey.json
 
