@@ -356,9 +356,18 @@ CREATE POLICY driver_transit_events_insert ON transit_events FOR INSERT WITH CHE
     )
 );
 
--- --------------------------------------------------------------------
--- 8. INITIAL SEED DATA
--- --------------------------------------------------------------------
+-- Allow anon client access for dev simulation and client apps
+DROP POLICY IF EXISTS anon_dev_buses ON buses;
+CREATE POLICY anon_dev_buses ON buses FOR ALL TO anon USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS anon_dev_students ON students;
+CREATE POLICY anon_dev_students ON students FOR ALL TO anon USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS anon_dev_transit_events ON transit_events;
+CREATE POLICY anon_dev_transit_events ON transit_events FOR ALL TO anon USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS anon_dev_users ON users;
+CREATE POLICY anon_dev_users ON users FOR ALL TO anon USING (true) WITH CHECK (true);
 
 INSERT INTO users (id, full_name, email, phone_number, role) VALUES
 ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Principal Sarah Jenkins', 'admin@school.edu', '+15550192834', 'ADMIN'),

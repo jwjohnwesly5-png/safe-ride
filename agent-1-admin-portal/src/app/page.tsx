@@ -5,7 +5,7 @@ import { BusFront, Users, AlertTriangle, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 
 export default function Dashboard() {
-  const [liveEvents, setLiveEvents] = useState<any[]>([]);
+  const [liveEvents, setLiveEvents] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     if (!supabase) return;

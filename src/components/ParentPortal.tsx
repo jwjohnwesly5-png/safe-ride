@@ -42,7 +42,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const mapStops = [
+  const mapStops: any[] = [
     {
       id: stop.id,
       latitude: pinLat,
@@ -52,7 +52,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
     }
   ];
 
-  const mapStudents = [
+  const mapStudents: any[] = [
     {
       id: student.id,
       first_name: student.firstName,

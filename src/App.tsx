@@ -20,7 +20,7 @@ import {
   ExternalLink 
 } from 'lucide-react';
 
-import { SystemArchitectureModal } from './components/SystemArchitectureModal';
+import SystemArchitectureModal from './components/SystemArchitectureModal';
 
 export const App: React.FC = () => {
   const [activePortal, setActivePortal] = useState<'admin' | 'parent' | 'driver'>('admin');

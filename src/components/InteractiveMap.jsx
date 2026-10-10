@@ -1,13 +1,24 @@
 import React, { useEffect, useRef } from 'react';
 
-export default function InteractiveMap({ 
-  busLocation, 
-  stops = [], 
-  students = [], 
-  onPickupSelect = null, 
-  height = '400px',
-  interactivePinMode = false 
-}) {
+/**
+ * @param {{
+ *   busLocation?: { lat: number; lng: number };
+ *   stops?: any[];
+ *   students?: any[];
+ *   onPickupSelect?: ((lat: number, lng: number) => void) | null;
+ *   height?: string;
+ *   interactivePinMode?: boolean;
+ * }} props
+ */
+export default function InteractiveMap(props) {
+  const {
+    busLocation,
+    stops = [],
+    students = [],
+    onPickupSelect = null,
+    height = '400px',
+    interactivePinMode = false
+  } = props;
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);

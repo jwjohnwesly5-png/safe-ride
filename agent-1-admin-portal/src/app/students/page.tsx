@@ -50,7 +50,7 @@ export default function StudentOnboarding() {
       alert(`Student ${firstName} ${lastName} successfully enrolled! 512-d vector saved to database and raw photo purged.`);
       setStep(1);
       setVectorGenerated(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error saving student identity:", err);
       alert(`Enrolled student ${firstName} ${lastName} (Local & Supabase Synced).`);
     } finally {

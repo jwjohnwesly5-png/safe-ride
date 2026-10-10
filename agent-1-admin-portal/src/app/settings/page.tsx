@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, ShieldCheck, Database, Bell, Radio } from "lucide-react";
+import { ShieldCheck, Radio } from "lucide-react";
 
 export default function SettingsPage() {
   const [geofenceRadius, setGeofenceRadius] = useState(50);
