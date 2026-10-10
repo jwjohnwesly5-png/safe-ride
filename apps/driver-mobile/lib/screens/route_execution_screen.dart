@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../telematics/gps_streamer.dart';
+import 'camera_verification_screen.dart';
 
 class RouteExecutionScreen extends StatefulWidget {
   const RouteExecutionScreen({super.key});
@@ -410,6 +411,27 @@ class _RouteExecutionScreenState extends State<RouteExecutionScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CameraVerificationScreen(
+                      isWithinGeofence: _latestGeofence?.isWithin50m ?? false,
+                      busId: 'bus-05',
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('OPEN AI CAMERA SCANNER'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigoAccent,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],
