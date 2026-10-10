@@ -1,11 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { BusFront, Users, AlertTriangle, ShieldCheck } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
 
 export default function Dashboard() {
+  const [liveEvents, setLiveEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('admin_dashboard_feed')
+      .on('broadcast', { event: 'live_transit_update' }, (payload) => {
+        console.log("Live transit update received on Admin Dashboard:", payload);
+        setLiveEvents((prev) => [payload.payload, ...prev]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const stats = [
     { title: "Active Buses", value: "12", icon: <BusFront className="w-8 h-8 text-blue-500" />, color: "border-blue-500", bg: "bg-blue-500/10" },
     { title: "Students Onboard", value: "432", icon: <Users className="w-8 h-8 text-emerald-500" />, color: "border-emerald-500", bg: "bg-emerald-500/10" },
     { title: "Pending Pickups", value: "89", icon: <Users className="w-8 h-8 text-orange-500" />, color: "border-orange-500", bg: "bg-orange-500/10" },
-    { title: "Safety Exceptions", value: "2", icon: <AlertTriangle className="w-8 h-8 text-red-500" />, color: "border-red-500", bg: "bg-red-500/10" },
+    { title: "Safety Exceptions", value: String(liveEvents.filter(e => e.event_type === 'MISMATCH_FLAGGED').length + 2), icon: <AlertTriangle className="w-8 h-8 text-red-500" />, color: "border-red-500", bg: "bg-red-500/10" },
   ];
 
   return (

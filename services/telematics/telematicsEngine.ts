@@ -58,15 +58,34 @@ export class TelematicsEngine {
     this.isRouteActive = true;
     console.log(`[Agent 3 Telematics] Route Started for Bus ${this.busId}. Background GPS streaming active (5s interval).`);
 
+    let currentLat = initialLat;
+    let currentLng = initialLng;
+
     // Emit initial position
     this.processGPSCoordinate({
-      latitude: initialLat,
-      longitude: initialLng,
+      latitude: currentLat,
+      longitude: currentLng,
       speedMps: 8.5, // ~30 km/h
       heading: 90, // East
       accuracyMeters: 3.2,
       timestamp: new Date().toISOString(),
     });
+
+    // Start continuous 5-second interval timer
+    this.trackingIntervalId = setInterval(() => {
+      if (!this.isRouteActive) return;
+      currentLat += 0.0004;
+      currentLng += 0.0004;
+
+      this.processGPSCoordinate({
+        latitude: currentLat,
+        longitude: currentLng,
+        speedMps: 8.5,
+        heading: 90,
+        accuracyMeters: 3.2,
+        timestamp: new Date().toISOString(),
+      });
+    }, 5000);
   }
 
   /**

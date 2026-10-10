@@ -96,6 +96,24 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
                 </div>
               </div>
             )}
+            {student.currentStatus === 'MISMATCHED' && (
+              <div className="bg-rose-500/20 border border-rose-500/40 p-3 rounded-xl flex items-center gap-3 animate-pulse glow-rose">
+                <Info className="w-6 h-6 text-rose-400 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-bold text-rose-300 uppercase tracking-wider">⚠️ SAFETY WARNING: BUS MISMATCH</p>
+                  <p className="text-[11px] text-slate-300">Attempted boarding on wrong bus detected. Driver notified.</p>
+                </div>
+              </div>
+            )}
+            {student.currentStatus === 'DROPPED_OFF' && (
+              <div className="bg-blue-500/20 border border-blue-500/40 p-3 rounded-xl flex items-center gap-3">
+                <CheckCircle2 className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-bold text-blue-300 uppercase tracking-wider">DROPPED OFF SAFELY</p>
+                  <p className="text-[11px] text-slate-300">Alex was dropped off safely at destination.</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

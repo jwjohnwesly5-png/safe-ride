@@ -27,7 +27,7 @@ async function getParentInfoForStudent(studentId) {
         last_name,
         users!students_parent_id_fkey (
           full_name,
-          fcm_token
+          fcm_device_token
         )
       `)
       .eq('id', studentId)
@@ -35,8 +35,8 @@ async function getParentInfoForStudent(studentId) {
 
     if (error) throw error;
     
-    // Extract parent token assuming 'users' table has 'fcm_token' column
-    const fcmToken = data.users?.fcm_token;
+    // Extract parent token assuming 'users' table has 'fcm_device_token' column
+    const fcmToken = data.users?.fcm_device_token;
     return {
       studentName: data.first_name,
       parentToken: fcmToken

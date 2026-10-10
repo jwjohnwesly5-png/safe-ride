@@ -96,6 +96,8 @@ export const App: React.FC = () => {
 
   // Simulator Event 3: Wrong Bus Mismatch
   const handleSimulateWrongBusMismatch = () => {
+    setStudents(prev => prev.map(s => s.id === alexStudent.id ? { ...s, currentStatus: 'MISMATCHED' } : s));
+
     const mismatchEvent: TransitEvent = {
       id: `evt-${Date.now()}`,
       studentId: alexStudent.id,

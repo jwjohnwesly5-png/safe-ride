@@ -15,6 +15,23 @@ class LiveTrackingScreen extends StatefulWidget {
 class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
   final ParentApiService _apiService = ParentApiService();
   final MapController _mapController = MapController();
+  StreamSubscription<Student>? _studentSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _studentSubscription = _apiService.studentStream.listen((student) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _studentSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

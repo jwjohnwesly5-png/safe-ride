@@ -62,6 +62,9 @@ class ParentApiService {
     ),
   ];
 
+  final StreamController<Student> _studentStreamController = StreamController<Student>.broadcast();
+  Stream<Student> get studentStream => _studentStreamController.stream;
+
   Student get currentStudent => _currentStudent;
   LatLng get busLocation => _busLocation;
   double get busSpeedKmH => _busSpeedKmH;
@@ -99,6 +102,7 @@ class ParentApiService {
       consentVerified: _currentStudent.consentVerified,
     );
 
+    _studentStreamController.add(_currentStudent);
     return true;
   }
 
@@ -116,6 +120,8 @@ class ParentApiService {
       status: TransitStatus.boardedVerified,
       consentVerified: true,
     );
+
+    _studentStreamController.add(_currentStudent);
 
     _events.insert(
       0,

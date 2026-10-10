@@ -312,6 +312,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                           ● Bus Arrived
                         </span>
                       )}
+                      {student.currentStatus === 'MISMATCHED' && (
+                        <span className="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full font-semibold text-[10px] uppercase tracking-wider animate-pulse">
+                          ● Mismatch Flagged
+                        </span>
+                      )}
+                      {student.currentStatus === 'DROPPED_OFF' && (
+                        <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-full font-semibold text-[10px] uppercase tracking-wider">
+                          ● Dropped Off
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

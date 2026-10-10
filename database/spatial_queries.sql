@@ -66,7 +66,7 @@ BEGIN
     -- Update Bus Location
     UPDATE buses
     SET current_location = bus_geom,
-        last_location_update = CURRENT_TIMESTAMP
+        last_gps_update = CURRENT_TIMESTAMP
     WHERE id = p_bus_id AND driver_id = p_driver_id;
     
     -- Check for geofence intersections <= 50m
